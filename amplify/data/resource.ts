@@ -5,7 +5,11 @@ import { schema as generatedSqlSchema } from './schema.sql';
 // Add a global authorization rule
 // TODO: Update the authorization rule as needed for your application
 //.      https://docs.amplify.aws/react/build-a-backend/data/customize-authz/
-const sqlSchema = generatedSqlSchema.authorization(allow => allow.guest())
+//const sqlSchema = generatedSqlSchema.authorization(allow => allow.guest())
+const sqlSchema = generatedSqlSchema.authorization(allow => [
+  allow.authenticated(),
+  allow.owner()
+])
 
 // default todo schema from example app
 const schema = a.schema({

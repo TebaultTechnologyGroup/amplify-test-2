@@ -1,51 +1,48 @@
 import { useEffect, useState } from "react";
-import type { Schema } from "../amplify/data/resource";
-import { generateClient } from "aws-amplify/data";
-import { useAuthenticator } from '@aws-amplify/ui-react';
-
-const client = generateClient<Schema>();
+import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { getCurrentUser } from 'aws-amplify/auth';
+import AdminLayout from './components/AdminLayout';
 
 function App() {
-  const [todos, setTodos] = useState<Array<Schema["Todo"]["type"]>>([]);
-
-  const { user, signOut } = useAuthenticator();
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
-    client.models.Todo.observeQuery().subscribe({
-      next: (data) => setTodos([...data.items]),
-    });
+    checkAuthStatus();
   }, []);
 
-  function createTodo() {
-    client.models.Todo.create({ content: window.prompt("Todo content") });
+  const checkAuthStatus = async () => {
+    try {
+      await getCurrentUser();
+      setIsAuthenticated(true);
+    } catch {
+      setIsAuthenticated(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isAuthenticated === false && location.pathname.startsWith('/admin')) {
+      navigate('/');
+    }
+  }, [isAuthenticated, location.pathname, navigate]);
+
+  if (isAuthenticated === null) {
+    return <div>Loading...</div>;
   }
 
-
-  function deleteTodo(id: string) {
-    client.models.Todo.delete({ id })
+  // If authenticated and on landing page, redirect to admin
+  if (isAuthenticated && location.pathname === '/') {
+    navigate('/admin/elders');
+    return null;
   }
 
-  return (
-    <main>
-      <h1>{user?.signInDetails?.loginId}'s todos</h1>
+  // If authenticated, wrap in AdminLayout for /admin routes
+  if (isAuthenticated && location.pathname.startsWith('/admin')) {
+    return <AdminLayout />;
+  }
 
-      <button onClick={createTodo}>+ new</button>
-      <ul>
-        {todos.map((todo) => (
-          <li onClick={() => deleteTodo(todo.id)}
-            key={todo.id}>{todo.content}</li>
-        ))}
-      </ul>
-      <div>
-        🥳 App successfully hosted. Try creating a new todo.
-        <br />
-        <a href="https://docs.amplify.aws/react/start/quickstart/#make-frontend-updates">
-          Review next step of this tutorial.
-        </a>
-      </div>
-      <button onClick={signOut}>Sign out</button>
-    </main>
-  );
+  return <Outlet />;
 }
 
 export default App;
