@@ -17,6 +17,7 @@ import {
 } from '@mui/icons-material';
 import { generateClient } from 'aws-amplify/data';
 import type { Schema } from '../../amplify/data/resource';
+import AddElderDialog from '../components/AddElderDialog';
 
 const client = generateClient<Schema>();
 
@@ -31,6 +32,7 @@ interface Elder {
 function EldersPage() {
     const [elders, setElders] = useState<Elder[]>([]);
     const [loading, setLoading] = useState(true);
+    const [openAddDialog, setOpenAddDialog] = useState(false);
 
     useEffect(() => {
         fetchElders();
@@ -47,6 +49,29 @@ function EldersPage() {
             setLoading(false);
         }
     };
+
+    /*
+    const fetchElders = async () => {
+      try {
+        setLoading(true);
+        const userId = await getCurrentUserId();
+        const { data } = await client.models.tbl_elder.list({
+          filter: {
+            caregiver_id: { eq: userId },
+            deleted: { eq: false }
+          }
+        });
+        setElders(data as any);
+      } catch (error) {
+        console.error('Error fetching elders:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    */
+
+
 
     const handleDelete = async (id: number) => {
         if (window.confirm('Are you sure you want to delete this elder profile?')) {
@@ -72,7 +97,7 @@ function EldersPage() {
                 <Button
                     variant="contained"
                     startIcon={<AddIcon />}
-                    onClick={() => {/* TODO: Open add dialog */ }}
+                    onClick={() => setOpenAddDialog(true)}
                 >
                     Add Elder
                 </Button>
@@ -90,7 +115,7 @@ function EldersPage() {
                         <Button
                             variant="contained"
                             startIcon={<AddIcon />}
-                            onClick={() => {/* TODO: Open add dialog */ }}
+                            onClick={() => setOpenAddDialog(true)}
                         >
                             Add Your First Elder
                         </Button>
@@ -146,6 +171,12 @@ function EldersPage() {
                     ))}
                 </Grid>
             )}
+
+            <AddElderDialog
+                open={openAddDialog}
+                onClose={() => setOpenAddDialog(false)}
+                onSuccess={fetchElders}
+            />
         </Box>
     );
 }
