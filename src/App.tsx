@@ -27,14 +27,15 @@ function App() {
     }
   }, [isAuthenticated, location.pathname, navigate]);
 
+  useEffect(() => {
+    // If authenticated and on landing page, redirect to admin
+    if (isAuthenticated && location.pathname === '/') {
+      navigate('/admin/elders');
+    }
+  }, [isAuthenticated, location.pathname, navigate]);
+
   if (isAuthenticated === null) {
     return <div>Loading...</div>;
-  }
-
-  // If authenticated and on landing page, redirect to admin
-  if (isAuthenticated && location.pathname === '/') {
-    navigate('/admin/elders');
-    return null;
   }
 
   // If authenticated, wrap in AdminLayout for /admin routes
