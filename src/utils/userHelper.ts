@@ -1,5 +1,5 @@
 import { generateClient } from 'aws-amplify/data';
-import { getCurrentUser } from 'aws-amplify/auth';
+import { getCurrentUser, fetchUserAttributes } from 'aws-amplify/auth';
 import type { Schema } from '../../amplify/data/resource';
 
 const client = generateClient<Schema>();
@@ -43,7 +43,8 @@ export async function getCurrentUserId(): Promise<number> {
 export async function getOrCreateCurrentUser(): Promise<number> {
   try {
     const cognitoUser = await getCurrentUser();
-    const email = cognitoUser.signInDetails?.loginId;
+    const attributes = await fetchUserAttributes();
+    const email = cognitoUser.signInDetails?.loginId || attributes.email;
 
     if (!email) {
       throw new Error('User email not found');
@@ -60,13 +61,17 @@ export async function getOrCreateCurrentUser(): Promise<number> {
       return users[0].id as number;
     }
 
-    // Create new user record
+    // Create new user record with Cognito attributes
     const now = new Date().toISOString();
-    const { data: newUser } = await client.models.tbl_user.create({
+    const firstName = attributes.given_name || email.split('@')[0];
+    const lastName = attributes.family_name || '';
+
+    // const { data: newUser } = await client.models.tbl_user.create({
+    const result =  await client.models.tbl_user.create({
       email,
       role: 'caregiver',
-      first_name: email.split('@')[0], // Temporary - should be collected during registration
-      last_name: '',
+      first_name: firstName,
+      last_name: lastName,
       active: true,
       created_at: now,
       created_by: 1, // System user
@@ -74,11 +79,13 @@ export async function getOrCreateCurrentUser(): Promise<number> {
       updated_by: 1,
     });
 
-    if (!newUser) {
-      throw new Error('Failed to create user');
-    }
-
-    return newUser.id as number;
+    console.log(JSON.stringify(result));
+    
+    // if (!newUser) {
+    //   throw new Error('Failed to create user');
+    // }
+    return 0;
+    // return newUser.id as number;
   } catch (error) {
     console.error('Error getting or creating user:', error);
     throw error;
