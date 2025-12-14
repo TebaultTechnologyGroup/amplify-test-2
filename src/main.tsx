@@ -14,6 +14,7 @@ import EldersPage from './pages/Elders';
 import DashboardPage from './pages/Dashboard';
 import TasksPage from './pages/Tasks';
 import RemindersPage from './pages/Reminders';
+import CompleteProfile from './pages/CompleteProfile';
 
 Amplify.configure(outputs);
 
@@ -34,6 +35,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
           <Route path='elders' element={<EldersPage />} />
           <Route path='tasks' element={<TasksPage />} />
           <Route path='reminders' element={<RemindersPage />} />
+          <Route path='complete-profile' element={<CompleteProfile />} />
         </Route>
       </Routes>
     </BrowserRouter>
