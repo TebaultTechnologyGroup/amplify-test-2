@@ -8,12 +8,15 @@ import {
     Button,
     Link,
     Paper,
-    Alert
+    Alert,
+    Grid,
 } from '@mui/material';
 import { signUp, confirmSignUp, signIn } from 'aws-amplify/auth';
 
 function RegisterPage() {
     const navigate = useNavigate();
+    const [firstName, setFirstName] = useState('');
+    const [lastName, setLastName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
@@ -25,6 +28,16 @@ function RegisterPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
+
+        if (!firstName.trim()) {
+            setError('First name is required');
+            return;
+        }
+
+        if (!lastName.trim()) {
+            setError('Last name is required');
+            return;
+        }
 
         if (password !== confirmPassword) {
             setError('Passwords do not match');
@@ -45,6 +58,8 @@ function RegisterPage() {
                 options: {
                     userAttributes: {
                         email,
+                        given_name: firstName.trim(),
+                        family_name: lastName.trim(),
                     },
                 },
             });
@@ -155,35 +170,63 @@ function RegisterPage() {
                     )}
 
                     <form onSubmit={handleSubmit}>
+                        <Grid container spacing={2}>
+                            <Grid size={{ xs: 12, sm: 6 }}>
+                                <TextField
+                                    autoFocus
+                                    label="First Name"
+                                    type="text"
+                                    fullWidth
+                                    required
+                                    value={firstName}
+                                    onChange={(e) => setFirstName(e.target.value)}
+                                    autoComplete="given-name"
+                                />
+                            </Grid>
+                            <Grid size={{ xs: 12, sm: 6 }}>
+                                <TextField
+                                    label="Last Name"
+                                    type="text"
+                                    fullWidth
+                                    required
+                                    value={lastName}
+                                    onChange={(e) => setLastName(e.target.value)}
+                                    autoComplete="family-name"
+                                />
+                            </Grid>
+                        </Grid>
                         <TextField
+                            margin="dense"
                             label="Email"
                             type="email"
                             fullWidth
                             required
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            sx={{ mb: 2 }}
+                            sx={{ mt: 2 }}
                             autoComplete="email"
                         />
                         <TextField
+                            margin="dense"
                             label="Password"
                             type="password"
                             fullWidth
                             required
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            sx={{ mb: 2 }}
+                            sx={{ mt: 2 }}
                             autoComplete="new-password"
                             helperText="At least 8 characters"
                         />
                         <TextField
+                            margin="dense"
                             label="Confirm Password"
                             type="password"
                             fullWidth
                             required
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
-                            sx={{ mb: 3 }}
+                            sx={{ mt: 2, mb: 3 }}
                             autoComplete="new-password"
                         />
                         <Button
