@@ -26,7 +26,7 @@ function LoginPage() {
 
         try {
             await signIn({ username: email, password });
-            navigate('/admin/elders');
+            navigate('/admin/dashboard');
         } catch (err: any) {
             setError(err.message || 'Failed to sign in. Please check your credentials.');
         } finally {

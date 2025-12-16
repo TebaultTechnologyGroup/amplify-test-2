@@ -38,7 +38,9 @@ const TIMEZONES = [
 ];
 
 function AddElderDialog({ open, onClose, onSuccess }: AddElderDialogProps) {
-    const [name, setName] = useState('');
+    const [firstName, setFirstName] = useState('');
+    const [lastName, setLastName] = useState('');
+    const [email, setEmail] = useState('');
     const [phone, setPhone] = useState('');
     const [timezone, setTimezone] = useState('America/New_York');
     const [active, setActive] = useState(true);
@@ -47,7 +49,9 @@ function AddElderDialog({ open, onClose, onSuccess }: AddElderDialogProps) {
 
     const handleClose = () => {
         if (!loading) {
-            setName('');
+            setFirstName('');
+            setLastName('');
+            setEmail('');
             setPhone('');
             setTimezone('America/New_York');
             setActive(true);
@@ -62,14 +66,27 @@ function AddElderDialog({ open, onClose, onSuccess }: AddElderDialogProps) {
         setLoading(true);
 
         // Validation
-        if (!name.trim()) {
-            setError('Name is required');
+        if (!firstName.trim()) {
+            setError('First Name is required');
+            setLoading(false);
+            return;
+        }
+
+        // Validation
+        if (!lastName.trim()) {
+            setError('Last Name is required');
             setLoading(false);
             return;
         }
 
         if (!phone.trim()) {
             setError('Phone number is required');
+            setLoading(false);
+            return;
+        }
+
+        if (!email.trim()) {
+            setError('Email is required');
             setLoading(false);
             return;
         }
@@ -83,20 +100,22 @@ function AddElderDialog({ open, onClose, onSuccess }: AddElderDialogProps) {
         }
 
         try {
-            const userId = await getOrCreateCurrentUser();
+            const userId: number = await getOrCreateCurrentUser();
             const now = new Date().toISOString();
 
-            await client.models.tbl_elder.create({
-                name: name.trim(),
+            await client.models.tblUser.create({
+                email: email,
+                firstName: firstName.trim(),
+                lastName: lastName.trim(),
+                userRole: 'caregiver',
                 phone: phone.trim(),
-                timezone,
-                active,
-                created_at: now,
-                created_by: userId,
-                updated_at: now,
-                updated_by: userId,
+                timezone: 'America/New_York',
+                active: true,
                 deleted: false,
-                caregiver_id: userId,
+                createdAt: now,
+                updatedAt: now,
+                createdBy: userId,
+                updatedBy: userId
             });
 
             onSuccess();
@@ -123,13 +142,26 @@ function AddElderDialog({ open, onClose, onSuccess }: AddElderDialogProps) {
                     <TextField
                         autoFocus
                         margin="dense"
-                        label="Full Name"
+                        label="First Name"
                         type="text"
                         fullWidth
                         required
                         value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        placeholder="e.g., John Smith"
+                        onChange={(e) => setFirstName(e.target.value)}
+                        placeholder="e.g., John"
+                        sx={{ mb: 2 }}
+                    />
+
+                    <TextField
+                        autoFocus
+                        margin="dense"
+                        label="Last Name"
+                        type="text"
+                        fullWidth
+                        required
+                        value={name}
+                        onChange={(e) => setLastName(e.target.value)}
+                        placeholder="e.g., John"
                         sx={{ mb: 2 }}
                     />
 

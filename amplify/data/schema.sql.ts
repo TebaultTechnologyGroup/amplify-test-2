@@ -4,7 +4,7 @@ import { a } from "@aws-amplify/data-schema";
 import { configure } from "@aws-amplify/data-schema/internals";
 import { secret } from "@aws-amplify/backend";
 
-export const schema = configure({
+export const schemaXX = configure({
     database: {
         identifier: "ID66zoOWQbVui2ztRVXVdJgQ",
         engine: "postgresql",
@@ -20,10 +20,10 @@ export const schema = configure({
         timezone: a.string().required(),
         active: a.boolean().required(),
         created_at: a.string(),
-        created_by: a.integer().required(),
-        updated_at: a.string().required(),
-        updated_by: a.integer().required(),
-        deleted: a.boolean().required()
+        updated_at: a.string(),
+        deleted: a.boolean().required(),
+        creator: a.belongsTo('tbl_user', 'created_by'),
+        editor: a.belongsTo('tbl_user', 'updated_by'),
     }).identifier([
         "id"
     ]),
@@ -95,11 +95,11 @@ export const schema = configure({
         preferred_name: a.string(),
         active: a.boolean().required(),
         created_at: a.string(),
-        created_by: a.integer(),
         updated_at: a.string(),
-        updated_by: a.integer().required(),
         phone: a.string(),
-        stripe_customer_id: a.string()
+        stripe_customer_id: a.string(),
+        creator: a.belongsTo('tbl_user', 'created_by'),
+        editor: a.belongsTo('tbl_user', 'updated_by'),
     }).identifier([
         "id"
     ]),

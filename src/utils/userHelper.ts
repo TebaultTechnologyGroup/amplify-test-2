@@ -1,9 +1,10 @@
 import { generateClient } from 'aws-amplify/data';
 import { getCurrentUser, fetchUserAttributes } from 'aws-amplify/auth';
-import type { Schema } from '../../amplify/data/resource';
+import type { Schema } from '../../amplify/data/resource'; // **Adjust the path as necessary**
 
-const client = generateClient<Schema>();
 
+const client = generateClient<Schema>(); 
+const SYSTEM_USER_ID = 1; // Assuming 1 is the system user ID
 /**
  * Get the current user's database ID
  * This matches the Cognito user to the tbl_user record
@@ -18,7 +19,7 @@ export async function getCurrentUserId(): Promise<number> {
     }
 
     // Query tbl_user to find the user by email
-    const { data: users } = await client.models.tbl_user.list({
+    const { data: users } = await client.models.tblUser.list({
       filter: {
         email: { eq: email }
       }
@@ -51,7 +52,7 @@ export async function getOrCreateCurrentUser(): Promise<number> {
     }
 
     // Try to find existing user
-    const { data: users } = await client.models.tbl_user.list({
+    const { data: users } = await client.models.tblUser.list({
       filter: {
         email: { eq: email }
       }
@@ -62,30 +63,31 @@ export async function getOrCreateCurrentUser(): Promise<number> {
     }
 
     // Create new user record with Cognito attributes
+    const creatorId = SYSTEM_USER_ID; 
     const now = new Date().toISOString();
     const firstName = attributes.given_name || email.split('@')[0];
     const lastName = attributes.family_name || '';
+    
 
-    // const { data: newUser } = await client.models.tbl_user.create({
-    const result =  await client.models.tbl_user.create({
-      email,
-      role: 'caregiver',
-      first_name: firstName,
-      last_name: lastName,
+     const { data: newUser } = await client.models.tblUser.create({
+      email, 
+      userRole: 'caregiver',
+      firstName: firstName,
+      lastName: lastName,
       active: true,
-      created_at: now,
-      created_by: 1, // System user
-      updated_at: now,
-      updated_by: 1,
+      deleted: false,
+      createdAt: now,
+      updatedAt: now,
+      createdBy: creatorId, 
+      updatedBy: creatorId,      
     });
 
-    console.log(JSON.stringify(result));
+  
     
-    // if (!newUser) {
-    //   throw new Error('Failed to create user');
-    // }
-    return 0;
-    // return newUser.id as number;
+    if (!newUser) {
+       throw new Error('Failed to create user');
+     }
+      return newUser.id as number;
   } catch (error) {
     console.error('Error getting or creating user:', error);
     throw error;
