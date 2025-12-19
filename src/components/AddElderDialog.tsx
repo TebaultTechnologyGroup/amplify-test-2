@@ -13,6 +13,7 @@ import {
     FormControlLabel,
     Switch,
     Alert,
+    Grid,
 } from '@mui/material';
 import { generateClient } from 'aws-amplify/data';
 import type { Schema } from '../../amplify/data/resource';
@@ -67,55 +68,78 @@ function AddElderDialog({ open, onClose, onSuccess }: AddElderDialogProps) {
 
         // Validation
         if (!firstName.trim()) {
-            setError('First Name is required');
+            setError('First name is required');
             setLoading(false);
             return;
         }
 
-        // Validation
         if (!lastName.trim()) {
-            setError('Last Name is required');
+            setError('Last name is required');
             setLoading(false);
             return;
         }
 
-        if (!phone.trim()) {
-            setError('Phone number is required');
-            setLoading(false);
-            return;
+        // Email validation (only if provided)
+        if (email.trim()) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                setError('Please enter a valid email address');
+                setLoading(false);
+                return;
+            }
         }
 
-        if (!email.trim()) {
-            setError('Email is required');
-            setLoading(false);
-            return;
+        // Phone validation (optional but if provided, should be valid)
+        if (phone.trim()) {
+            const phoneRegex = /^[\d\s\-\(\)\+]+$/;
+            if (!phoneRegex.test(phone)) {
+                setError('Please enter a valid phone number');
+                setLoading(false);
+                return;
+            }
         }
 
-        // Basic phone validation (US format)
-        const phoneRegex = /^[\d\s\-\(\)]+$/;
-        if (!phoneRegex.test(phone)) {
-            setError('Please enter a valid phone number');
+        // At least one contact method required
+        if (!email.trim() && !phone.trim()) {
+            setError('Please provide either email or phone number');
             setLoading(false);
             return;
         }
 
         try {
-            const userId: number = await getOrCreateCurrentUser();
+            const userId = await getOrCreateCurrentUser();
             const now = new Date().toISOString();
 
+            // Check if email already exists (only if email provided)
+            if (email.trim()) {
+                const { data: existingUsers } = await client.models.tblUser.list({
+                    filter: {
+                        email: { eq: email.trim().toLowerCase() },
+                        deleted: { eq: false }
+                    }
+                });
+
+                if (existingUsers && existingUsers.length > 0) {
+                    setError('A user with this email already exists');
+                    setLoading(false);
+                    return;
+                }
+            }
+
+            // Create elder as a user with 'elder' role
             await client.models.tblUser.create({
-                email: email,
                 firstName: firstName.trim(),
                 lastName: lastName.trim(),
-                userRole: 'caregiver',
-                phone: phone.trim(),
-                timezone: 'America/New_York',
-                active: true,
+                email: email.trim() ? email.trim().toLowerCase() : undefined,
+                phone: phone.trim() || undefined,
+                timezone,
+                userRole: 'elder',
+                active,
                 deleted: false,
                 createdAt: now,
-                updatedAt: now,
                 createdBy: userId,
-                updatedBy: userId
+                updatedAt: now,
+                updatedBy: userId,
             });
 
             onSuccess();
@@ -139,30 +163,44 @@ function AddElderDialog({ open, onClose, onSuccess }: AddElderDialogProps) {
                         </Alert>
                     )}
 
-                    <TextField
-                        autoFocus
-                        margin="dense"
-                        label="First Name"
-                        type="text"
-                        fullWidth
-                        required
-                        value={name}
-                        onChange={(e) => setFirstName(e.target.value)}
-                        placeholder="e.g., John"
-                        sx={{ mb: 2 }}
-                    />
+                    <Grid container spacing={2}>
+                        <Grid size={{ xs: 12, sm: 6 }}>
+                            <TextField
+                                autoFocus
+                                margin="dense"
+                                label="First Name"
+                                type="text"
+                                fullWidth
+                                required
+                                value={firstName}
+                                onChange={(e) => setFirstName(e.target.value)}
+                                placeholder="e.g., John"
+                            />
+                        </Grid>
+                        <Grid size={{ xs: 12, sm: 6 }}>
+                            <TextField
+                                margin="dense"
+                                label="Last Name"
+                                type="text"
+                                fullWidth
+                                required
+                                value={lastName}
+                                onChange={(e) => setLastName(e.target.value)}
+                                placeholder="e.g., Smith"
+                            />
+                        </Grid>
+                    </Grid>
 
                     <TextField
-                        autoFocus
                         margin="dense"
-                        label="Last Name"
-                        type="text"
+                        label="Email"
+                        type="email"
                         fullWidth
-                        required
-                        value={name}
-                        onChange={(e) => setLastName(e.target.value)}
-                        placeholder="e.g., John"
-                        sx={{ mb: 2 }}
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="e.g., john.smith@example.com"
+                        sx={{ mt: 2 }}
+                        helperText="Optional - for notifications. Either email or phone required."
                     />
 
                     <TextField
@@ -170,15 +208,14 @@ function AddElderDialog({ open, onClose, onSuccess }: AddElderDialogProps) {
                         label="Phone Number"
                         type="tel"
                         fullWidth
-                        required
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
                         placeholder="e.g., (555) 123-4567"
-                        helperText="Include area code"
-                        sx={{ mb: 2 }}
+                        helperText="Optional - for SMS notifications. Either email or phone required."
+                        sx={{ mt: 2 }}
                     />
 
-                    <FormControl fullWidth sx={{ mb: 2 }}>
+                    <FormControl fullWidth sx={{ mt: 2 }}>
                         <InputLabel>Timezone</InputLabel>
                         <Select
                             value={timezone}
@@ -201,6 +238,7 @@ function AddElderDialog({ open, onClose, onSuccess }: AddElderDialogProps) {
                             />
                         }
                         label="Active"
+                        sx={{ mt: 2 }}
                     />
                 </DialogContent>
                 <DialogActions>

@@ -12,105 +12,24 @@ export const schemaXX = configure({
         sslCert: secret("SUPABASE_CA_CERT")
     }
 }).schema({
-    "tbl_elder": a.model({
+ "tblUser": a.model({
         id: a.integer().default(),
-        caregiver_id: a.integer().required(),
-        name: a.string().required(),
-        phone: a.string().required(),
-        timezone: a.string().required(),
-        active: a.boolean().required(),
-        created_at: a.string(),
-        updated_at: a.string(),
-        deleted: a.boolean().required(),
-        creator: a.belongsTo('tbl_user', 'created_by'),
-        editor: a.belongsTo('tbl_user', 'updated_by'),
-    }).identifier([
-        "id"
-    ]),
-    "tbl_reminder": a.model({
-        id: a.integer().default(),
-        task_id: a.integer().required(),
-        scheduled_at: a.string(),
-        reminder_status_id: a.integer(),
-        sent_at: a.string(),
-        confirmed_at: a.string(),
-        confirmed_by: a.string().required(),
-        note: a.string()
-    }).identifier([
-        "id"
-    ]),
-    "tbl_reminder_category": a.model({
-        id: a.integer().default(),
-        category: a.string()
-    }).identifier([
-        "id"
-    ]),
-    "tbl_subscription": a.model({
-        id: a.integer().default(),
-        user_id: a.id().required(),
-        stripe_customer_id: a.string(),
-        stripe_subscription_id: a.string(),
-        status: a.string().required(),
-        plan_id: a.string().required(),
-        current_period_start: a.string(),
-        current_period_end: a.string(),
-        cancel_at_period_end: a.boolean(),
-        created_at: a.string(),
-        updated_at: a.string(),
-        created_by: a.integer(),
-        updated_by: a.integer()
-    }).identifier([
-        "id"
-    ]),
-    "tbl_task": a.model({
-        id: a.integer().default(),
-        elder_id: a.integer().required(),
-        task: a.string().required(),
-        task_category_id: a.integer().required(),
-        instructions: a.string(),
-        rrule: a.string(),
-        active: a.boolean(),
-        created_at: a.string(),
-        created_by: a.integer().required(),
-        updated_at: a.string().required(),
-        updated_by: a.integer().required()
-    }).identifier([
-        "id"
-    ]),
-    "tbl_task_category": a.model({
-        id: a.integer().required(),
-        category: a.string(),
-        created_at: a.string().required(),
-        created_by: a.integer()
-    }).identifier([
-        "id"
-    ]),
-    "tbl_user": a.model({
-        id: a.integer().default(),
+        awsId: a.string(),
+        firstName: a.string().required(),
+        lastName: a.string().required(),
         email: a.string().required(),
-        password: a.string(),
-        role: a.string().required(),
-        first_name: a.string().required(),
-        last_name: a.string().required(),
-        preferred_name: a.string(),
-        active: a.boolean().required(),
-        created_at: a.string(),
-        updated_at: a.string(),
+        userRole: a.string().required(),
+        active: a.boolean(),
+        deleted: a.boolean(),
+        createdAt: a.datetime(),
+        updatedAt: a.datetime(),
+        createdBy: a.integer(),
+        updatedBy: a.integer(),
         phone: a.string(),
-        stripe_customer_id: a.string(),
-        creator: a.belongsTo('tbl_user', 'created_by'),
-        editor: a.belongsTo('tbl_user', 'updated_by'),
+        timezone: a.string(),
+        creator: a.belongsTo('tblUser', 'createdBy'),
+        editor: a.belongsTo('tblUser', 'updatedBy'),
     }).identifier([
         "id"
     ]),
-    "tbl_webhook_event": a.model({
-        id: a.integer().default(),
-        event_id: a.string().required(),
-        event_type: a.string().required(),
-        processed: a.boolean(),
-        payload: a.json(),
-        created_at: a.string()
-    }).identifier([
-        "id"
-    ])
 });

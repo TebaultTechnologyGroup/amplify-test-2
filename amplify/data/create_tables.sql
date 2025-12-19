@@ -1,5 +1,12 @@
+
+SET search_path to public;
+
+GRANT USAGE ON SCHEMA public TO postgres;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO postgres;
+
 create table tblUser (
   id serial primary key,
+  aws_id text,
   firstName text not null,
   lastName text not null,
   email text not null,
@@ -13,6 +20,23 @@ create table tblUser (
   createdBy integer default 1 references tblUser(id) on delete set default,
   updatedBy integer default 1 references tblUser(id) on delete set default
 );
+
+-- Create a policy: Users can only see/edit their own record
+create policy "Users can view own record" 
+on tblUser 
+for select 
+using (
+  id = nullif(current_setting('app.current_user_id', true), '')::integer
+);
+
+create policy "Users can update own record" 
+on tblUser 
+for update 
+using (
+  id = nullif(current_setting('app.current_user_id', true), '')::integer
+);
+
+
 
 
 create table tblTask (
